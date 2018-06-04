@@ -9,6 +9,7 @@ import android.os.Bundle;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,6 +34,12 @@ public class MainActivity extends AppCompatActivity {
         listView.setAdapter(arrayAdapter);
 
         DownloadTask task = new DownloadTask();
+
+        try {
+            task.execute("https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -89,7 +96,32 @@ public class MainActivity extends AppCompatActivity {
                         articleInfo += current;
                         data = reader.read();
                     }
-                    Log.i("ArticleInfo", articleInfo);
+
+                    JSONObject jsonObject = new JSONObject(articleInfo);
+
+                    if (!jsonObject.isNull("title") && !jsonObject.isNull("url")) {
+
+                        String articleTitle = jsonObject.getString("title");
+                        String articleURL = jsonObject.getString("url");
+
+                        url = new URL(articleURL);
+                        urlConnection = (HttpURLConnection) url.openConnection();
+
+                        in = urlConnection.getInputStream();
+                        reader = new InputStreamReader(in);
+
+                        data = reader.read();
+
+                        String articleContent = "";
+
+                        while (data != -1) {
+                            char current = (char) data;
+                            articleInfo += current;
+                            data = reader.read();
+                        }
+
+                        Log.i("articleContent", articleContent);
+                    }
                 }
 
             } catch (MalformedURLException e) {
