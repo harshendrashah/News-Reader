@@ -1,5 +1,7 @@
 package com.example.harshendra.newsreader;
 
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteStatement;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -22,6 +24,8 @@ public class MainActivity extends AppCompatActivity {
 
     ArrayAdapter arrayAdapter;
 
+    SQLiteDatabase articlesDb;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,6 +37,10 @@ public class MainActivity extends AppCompatActivity {
 
         listView.setAdapter(arrayAdapter);
 
+        articlesDb = this.openOrCreateDatabase("Articles", MODE_PRIVATE, null);
+
+        articlesDb.execSQL("CREATE TABLE IF NOT EXISTS articles (id INTEGER PRIMARY KEY, articleId INTEGER, title VARCHAR, content VARCHAR)");
+
         DownloadTask task = new DownloadTask();
 
         try {
@@ -40,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
 
     }
 
@@ -121,6 +130,17 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         Log.i("articleContent", articleContent);
+
+                        String sql = "INSERT INTO articles (articleId, title, content) VALUES (?, ?, ?)";
+
+                        SQLiteStatement statement = articlesDb.compileStatement(sql);
+
+                        statement.bindString(1, articleId);
+                        statement.bindString(2, articleTitle);
+                        statement.bindString(3, articleContent);
+
+                        statement.execute();
+
                     }
                 }
 
